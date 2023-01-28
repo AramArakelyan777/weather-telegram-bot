@@ -120,7 +120,10 @@ async def get_weather(message):
         if 14 < t < 39 and wind < 8 and cloud < 55:
             await bot.send_message(message.from_user.id, currentMixedExpressions[1])
     except pyowm.commons.exceptions.NotFoundError:
-        await bot.send_message(message.from_user.id, ex.errorMessage)
+        if currentLanguage == "ru":
+            await bot.send_message(message.from_user.id, ex.errorMessageRu)
+        else:
+            await bot.send_message(message.from_user.id, ex.errorMessageEn)
 
 
 executor.start_polling(dp)
