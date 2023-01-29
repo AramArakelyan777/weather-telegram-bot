@@ -1,5 +1,7 @@
+from difflib import get_close_matches
 from os import environ
 
+import pymysql.cursors
 import pyowm.commons.exceptions
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, User
@@ -46,21 +48,27 @@ async def to_query2(call: types.callback_query):
     currentLanguage = "ru"
 
 
+countryListEn = []
+cityListEn = []
+
+connection = pymysql.connect(host='localhost', user='root', port=3306, database='countriesDB',
+                             cursorclass=pymysql.cursors.DictCursor)
+
+
 @dp.message_handler()
 async def get_weather(message):
     try:
+        currentWeatherInfo = ex.weatherInfoEn
+        currentTemperatureExpressions = ex.temperatureExpressionsEn
+        currentCloudExpressions = ex.cloudExpressionsEn
+        currentWindExpressions = ex.windExpressionsEn
+        currentMixedExpressions = ex.mixedExpressionsEn
         if currentLanguage == "ru":
             currentWeatherInfo = ex.weatherInfoRu
             currentTemperatureExpressions = ex.temperatureExpressionsRu
             currentCloudExpressions = ex.cloudExpressionsRu
             currentWindExpressions = ex.windExpressionsRu
             currentMixedExpressions = ex.mixedExpressionsRu
-        else:
-            currentWeatherInfo = ex.weatherInfoEn
-            currentTemperatureExpressions = ex.temperatureExpressionsEn
-            currentCloudExpressions = ex.cloudExpressionsEn
-            currentWindExpressions = ex.windExpressionsEn
-            currentMixedExpressions = ex.mixedExpressionsEn
 
         location = message.text
         config_dict = get_default_config()
@@ -120,10 +128,30 @@ async def get_weather(message):
         if 14 < t < 39 and wind < 8 and cloud < 55:
             await bot.send_message(message.from_user.id, currentMixedExpressions[1])
     except pyowm.commons.exceptions.NotFoundError:
-        if currentLanguage == "ru":
-            await bot.send_message(message.from_user.id, ex.errorMessageRu)
-        else:
-            await bot.send_message(message.from_user.id, ex.errorMessageEn)
+        try:
+            with connection.cursor() as cursor:
+                select = "SELECT * FROM countryTable"
+                cursor.execute(select)
+                rows = cursor.fetchall()
+                for row in rows:
+                    countryListEn.append(row['countryEn'])
+                    cityListEn.append(row['cityEn'])
+
+                if currentLanguage == "ru":
+                    currentNotFound = ex.notfoundExpressionRu
+                else:
+                    currentNotFound = ex.notfoundExpressionEn
+
+                matches = get_close_matches(message.text, cityListEn, n=1, cutoff=0.7)
+                matches_str = "".join(map(str, matches))
+                await bot.send_message(message.from_user.id, currentNotFound.format(matches_str, countryListEn[
+                    cityListEn.index(matches_str)]))
+        except ValueError:
+            if currentLanguage == "ru":
+                await bot.send_message(message.from_user.id, ex.errorMessageRu)
+            else:
+                await bot.send_message(message.from_user.id, ex.errorMessageEn)
 
 
 executor.start_polling(dp)
+connection.close()
