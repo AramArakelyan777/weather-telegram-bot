@@ -75,7 +75,7 @@ async def to_query_language(call: types.callback_query):
 
         connection.commit()
         cursor.close()
-        connection.close()
+        connection_pool.putconn(connection)
 
         if chosen_language == "en":
             await bot.send_message(user_id, text=ex.welcome_message_english)
