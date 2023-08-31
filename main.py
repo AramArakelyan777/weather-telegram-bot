@@ -20,8 +20,6 @@ connection_pool = psycopg2.pool.SimpleConnectionPool(
     password=environ["PASSWORD"]
 )
 
-user_language = ""
-
 
 def insert_user_data(connection, connection_cursor, first_name, last_name, current_language, telegram_id):
     connection_cursor.execute("SELECT id FROM users WHERE tg_id = %s", (telegram_id,))
@@ -50,7 +48,7 @@ async def start_handler(message: types.Message):
         telegram_id = message.from_user.id
 
         insert_user_data(connection=conn, connection_cursor=cursor, first_name=first_name, last_name=last_name,
-                         current_language=user_language, telegram_id=telegram_id)
+                         current_language="", telegram_id=telegram_id)
 
         await bot.send_message(telegram_id, ex.start_message.format(first_name, first_name), reply_markup=markup)
     finally:
@@ -64,26 +62,39 @@ async def help_the_user(message: types.Message):
     await bot.send_message(message.from_user.id, ex.help_message)
 
 
-@dispatcher.callback_query_handler(lambda c: c.data == "enId")
-async def to_query(call: types.callback_query):
-    await bot.answer_callback_query(call.id)
-    await bot.send_message(call.message.chat.id, text=ex.welcome_message_english)
-    global user_language
-    user_language = "en"
+@dispatcher.callback_query_handler(lambda c: c.data in ["enId", "ruId"])
+async def to_query_language(call: types.callback_query):
+    user_id = call.message.chat.id
+    chosen_language = "en" if call.data == "enId" else "ru"
 
+    try:
+        connection = connection_pool.getconn()
+        cursor = connection.cursor()
+        update_query = "UPDATE users SET language = %s WHERE tg_id = %s"
+        cursor.execute(update_query, (chosen_language, user_id))
 
-@dispatcher.callback_query_handler(lambda c: c.data == "ruId")
-async def to_query2(call: types.callback_query):
-    await bot.answer_callback_query(call.id)
-    await bot.send_message(call.message.chat.id, text=ex.welcome_message_russian)
-    global user_language
-    user_language = "ru"
+        connection.commit()
+        cursor.close()
+        connection.close()
+
+        if chosen_language == "en":
+            await bot.send_message(user_id, text=ex.welcome_message_english)
+        else:
+            await bot.send_message(user_id, text=ex.welcome_message_russian)
+    finally:
+        await bot.answer_callback_query(call.id)
 
 
 @dispatcher.message_handler()
 async def get_weather(message):
     conn = connection_pool.getconn()
     cursor = conn.cursor()
+    cursor.execute("SELECT language FROM users WHERE tg_id = %s", (message.from_user.id,))
+    user_language = cursor.fetchone()
+    if user_language:
+        user_language = user_language[0]
+    else:
+        user_language = "en"
     try:
         current_weather_info = ex.weather_info_english
         current_temperature_expressions = ex.temperature_expressions_english
