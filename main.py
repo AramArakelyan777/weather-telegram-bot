@@ -1,7 +1,7 @@
-from difflib import get_close_matches
 from os import environ
 
 import psycopg2.pool
+from psycopg2 import sql
 import pyowm.commons.exceptions
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -88,7 +88,6 @@ async def to_query_language(call: types.callback_query):
 
 @dispatcher.message_handler()
 async def get_weather(message):
-    country_list, city_list = [], []
     conn = connection_pool.getconn()
     cursor = conn.cursor()
     cursor.execute("SELECT language FROM users WHERE tg_id = %s", (message.from_user.id,))
@@ -169,17 +168,17 @@ async def get_weather(message):
         if 14 < temp < 39 and wind < 8 and cloud < 55:
             await bot.send_message(message.from_user.id, current_mixed_expressions[1])
     except pyowm.commons.exceptions.NotFoundError:
-        try:
-            if user_language == "ru":
-                current_not_found = ex.not_found_expression_russian
-            else:
-                current_not_found = ex.not_found_expression_english
-
-            matches = get_close_matches(message.text, city_list, n=1, cutoff=0.7)
-            matches_str = "".join(map(str, matches))
-            await bot.send_message(message.from_user.id,
-                                   current_not_found.format(matches_str, country_list[city_list.index(matches_str)]))
-        except ValueError:
+        if user_language == "ru":
+            current_not_found = ex.not_found_expression_russian
+        else:
+            current_not_found = ex.not_found_expression_english
+        cursor.execute(sql.SQL("SELECT city, country FROM cities WHERE city ILIKE %s"), [f"%{message.text}%"])
+        rows = cursor.fetchall()
+        if rows:
+            options = [f"{row[0]}, {row[1]}" for row in rows]
+            options_str = "\n".join(options)
+            await bot.send_message(message.from_user.id, current_not_found.format(options_str))
+        else:
             if user_language == "ru":
                 await bot.send_message(message.from_user.id, ex.error_message_russian)
             else:
