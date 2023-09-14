@@ -15,7 +15,7 @@ dispatcher = Dispatcher(bot)
 
 connection_pool = psycopg2.pool.SimpleConnectionPool(
     minconn=1,
-    maxconn=20,
+    maxconn=50,
     dbname=environ["DB_NAME"],
     user="postgres",
     password=environ["PASSWORD"]
