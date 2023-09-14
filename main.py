@@ -87,7 +87,7 @@ async def to_query_language(call: types.callback_query):
 
 
 @dispatcher.message_handler()
-async def get_weather(message):
+async def get_weather_and_send_messages(message):
     conn = connection_pool.getconn()
     cursor = conn.cursor()
     cursor.execute("SELECT language FROM users WHERE tg_id = %s", (message.from_user.id,))
