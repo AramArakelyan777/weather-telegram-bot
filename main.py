@@ -18,25 +18,47 @@ connection_pool = psycopg2.pool.SimpleConnectionPool(
     maxconn=100,
     dbname=environ["DB_NAME"],
     user="postgres",
-    password=environ["PASSWORD"]
+    password=environ["PASSWORD"],
 )
 
 
 def insert_user_data(connection, connection_cursor, first_name, last_name, current_language, telegram_id):
+    """
+    Insert the user data into the database.
+    :param connection: database connection,
+    :param connection_cursor: database connection cursor,
+    :param first_name: first name of the user,
+    :param last_name: last name of the user,
+    :param current_language: the language the user has chosen,
+    :param telegram_id: user telegram id,
+    :return: None
+    The function inserts only unique user data into a postgresql database.
+    """
+
     connection_cursor.execute("SELECT id FROM users WHERE tg_id = %s", (telegram_id,))
     existing_user_id = connection_cursor.fetchone()
+
     if not existing_user_id:
         connection_cursor.execute(
             "INSERT INTO users (fname, lname, language, tg_id) VALUES (%s, %s, %s, %s)",
-            (first_name, last_name, current_language, telegram_id)
+            (first_name, last_name, current_language, telegram_id,)
         )
         connection.commit()
 
 
 @dispatcher.message_handler(commands=["start"])
 async def start_handler(message: types.Message):
+    """
+    Create inline language keyboard buttons in the bot and send a message
+    :param message: the user message
+    :return: None
+    The function creates inline keyboard buttons for choosing a
+    language, inserts the user data and sends a start message.
+    """
+
     conn = connection_pool.getconn()
     cursor = conn.cursor()
+
     try:
         markup = InlineKeyboardMarkup()
         english_button = InlineKeyboardButton(text="🇬🇧 English", callback_data="enId")
@@ -60,11 +82,26 @@ async def start_handler(message: types.Message):
 
 @dispatcher.message_handler(commands=["help"])
 async def help_the_user(message: types.Message):
+    """
+    Send help message.
+    :param message: the user message
+    :return: None
+    The function sends a help message after the user enters the respective command.
+    """
+
     await bot.send_message(message.from_user.id, ex.help_message)
 
 
 @dispatcher.callback_query_handler(lambda c: c.data in ["enId", "ruId"])
 async def to_query_language(call: types.callback_query):
+    """
+    Process the inline keyboard buttons query and update the DB table.
+    :param call: callback call
+    :return: None
+    The function gets the language the user has selected and writes that information
+    in the DB table under the name of the user. It also sends a welcome message.
+    """
+
     user_id = call.message.chat.id
     chosen_language = "en" if call.data == "enId" else "ru"
 
@@ -88,20 +125,36 @@ async def to_query_language(call: types.callback_query):
 
 @dispatcher.message_handler()
 async def get_weather_and_send_messages(message):
+    """
+    Get the weather information, send some appropriate messages.
+    :param message: the message the user sends
+    :return: None
+    The function gets the chosen language of the current user from the database
+    table and gets the weather information using an API and sends it to the user.
+    It also sends some messages depending on the weather. If the name of a location
+    entered by the user does not exist, the function will check a similar name
+    of a location and send it with the name of the country it is in, getting
+    that information from the database. If it does not found anything, it
+    will inform the user about it.
+    """
+
     conn = connection_pool.getconn()
     cursor = conn.cursor()
     cursor.execute("SELECT language FROM users WHERE tg_id = %s", (message.from_user.id,))
     user_language = cursor.fetchone()
+
     if user_language:
         user_language = user_language[0]
     else:
         user_language = "en"
+
     try:
         current_weather_info = ex.weather_info_english
         current_temperature_expressions = ex.temperature_expressions_english
         current_cloud_expressions = ex.cloud_expressions_english
         current_wind_expressions = ex.wind_expressions_english
         current_mixed_expressions = ex.mixed_expressions_english
+
         if user_language == "ru":
             current_weather_info = ex.weather_info_russian
             current_temperature_expressions = ex.temperature_expressions_russian
@@ -132,6 +185,7 @@ async def get_weather_and_send_messages(message):
         await bot.send_message(message.from_user.id,
                                current_weather_info.format(location, temperature, fahrenheit, status, cloudiness,
                                                            wind_speed, mph, humidity))
+
         if temp <= -10:
             await bot.send_message(message.from_user.id, current_temperature_expressions[0])
         elif -10 < temp <= 0:
@@ -146,16 +200,19 @@ async def get_weather_and_send_messages(message):
             await bot.send_message(message.from_user.id, current_temperature_expressions[5])
             if cloud < 50:
                 await bot.send_message(message.from_user.id, current_cloud_expressions[0])
+
         if cloud >= 70:
             if temp >= 0:
                 await bot.send_message(message.from_user.id, current_cloud_expressions[1])
             else:
                 await bot.send_message(message.from_user.id, current_cloud_expressions[2])
+
         if 55 <= cloud < 70:
             if temp >= 0:
                 await bot.send_message(message.from_user.id, current_cloud_expressions[3])
             else:
                 await bot.send_message(message.from_user.id, current_cloud_expressions[4])
+
         if wind >= 8:
             await bot.send_message(message.from_user.id, current_wind_expressions[0])
             if temp < -5:
@@ -163,6 +220,7 @@ async def get_weather_and_send_messages(message):
         else:
             if -10 < temp <= 0:
                 await bot.send_message(message.from_user.id, current_wind_expressions[2])
+
         if 14 < temp <= 36 and wind < 8 and cloud < 55:
             await bot.send_message(message.from_user.id, current_mixed_expressions[0])
         if 14 < temp < 39 and wind < 8 and cloud < 55:
@@ -172,8 +230,10 @@ async def get_weather_and_send_messages(message):
             current_not_found = ex.not_found_expression_russian
         else:
             current_not_found = ex.not_found_expression_english
+
         cursor.execute(sql.SQL("SELECT city, country FROM cities WHERE city ILIKE %s"), [f"%{message.text}%"])
         rows = cursor.fetchall()
+
         if rows:
             options = [f"{row[0]}, {row[1]}" for row in rows]
             options_str = "\n".join(options)
