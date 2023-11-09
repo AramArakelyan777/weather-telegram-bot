@@ -52,3 +52,7 @@ mixed_expressions_russian = ["Время для веселья.🕶", "Каже�
 not_found_expression_english = "Perhaps you mean one of the following:\n{}."
 
 not_found_expression_russian = "Возможно вы имели в виду что-то из этого:\n{}."
+
+shareButtonTextEnglish = "Share Location 📍"
+
+shareButtonTextRussian = "Поделиться локацией 📍"

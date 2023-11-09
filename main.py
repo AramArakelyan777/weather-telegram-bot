@@ -22,14 +22,14 @@ connection_pool = psycopg2.pool.SimpleConnectionPool(
 )
 
 
-def get_keyboard():
+def get_keyboard(text):
     """
     Creates a reply markup keyboard with a share location button and returns it.
     :return: keyboard object
     """
 
-    keyboard = types.ReplyKeyboardMarkup()
-    button = types.KeyboardButton("Share Location 📍", request_location=True)
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    button = types.KeyboardButton(text=text, request_location=True)
     keyboard.add(button)
     return keyboard
 
@@ -127,10 +127,12 @@ async def to_query_language(call: types.callback_query):
         cursor.close()
         connection_pool.putconn(connection)
 
-        if chosen_language == "en":
-            await bot.send_message(user_id, text=ex.welcome_message_english)
+        if chosen_language == "ru":
+            await bot.send_message(user_id, text=ex.welcome_message_russian,
+                                   reply_markup=get_keyboard(ex.shareButtonTextRussian))
         else:
-            await bot.send_message(user_id, text=ex.welcome_message_russian)
+            await bot.send_message(user_id, text=ex.welcome_message_english,
+                                   reply_markup=get_keyboard(ex.shareButtonTextEnglish))
     finally:
         await bot.answer_callback_query(call.id)
 
