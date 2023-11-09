@@ -151,8 +151,6 @@ async def handle_location(message: types.Message):
         if result and "components" in result[0]:
             residence_name = result[0]["components"]["city"]
             await message.reply(f"{residence_name}")
-        else:
-            await message.reply("Couldn't determine residence name.")
 
     except InvalidInputError:
         await message.reply(ex.error_message_english)
