@@ -163,11 +163,6 @@ async def get_weather_and_send_messages(message):
         user_language = "en"
 
     try:
-        current_weather_info = ex.weather_info_english
-        current_temperature_expressions = ex.temperature_expressions_english
-        current_cloud_expressions = ex.cloud_expressions_english
-        current_wind_expressions = ex.wind_expressions_english
-        current_mixed_expressions = ex.mixed_expressions_english
 
         if user_language == "ru":
             current_weather_info = ex.weather_info_russian
@@ -175,6 +170,12 @@ async def get_weather_and_send_messages(message):
             current_cloud_expressions = ex.cloud_expressions_russian
             current_wind_expressions = ex.wind_expressions_russian
             current_mixed_expressions = ex.mixed_expressions_russian
+        else:
+            current_weather_info = ex.weather_info_english
+            current_temperature_expressions = ex.temperature_expressions_english
+            current_cloud_expressions = ex.cloud_expressions_english
+            current_wind_expressions = ex.wind_expressions_english
+            current_mixed_expressions = ex.mixed_expressions_english
 
         location = message.text
         config_dict = get_default_config()
