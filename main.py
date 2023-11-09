@@ -8,6 +8,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from pyowm import OWM
 from pyowm.utils.config import get_default_config
 from opencage.geocoder import OpenCageGeocode
+from opencage.geocoder import InvalidInputError, RateLimitExceededError, UnknownError
 
 import expressions as ex
 
@@ -141,10 +142,26 @@ async def to_query_language(call: types.callback_query):
 
 @dispatcher.message_handler(content_types=["location"])
 async def handle_location(message: types.Message):
-    lat = message.location.latitude
-    lon = message.location.longitude
-    reply = "latitude:  {}\nlongitude: {}".format(lat, lon)
-    await message.answer(reply)
+    location = message.location
+    latitude, longitude = location.latitude, location.longitude
+
+    try:
+        result = geocoder.reverse_geocode(latitude, longitude)
+
+        if result and "components" in result[0]:
+            residence_name = result[0]["components"]["city"]
+            await message.reply(f"{residence_name}")
+        else:
+            await message.reply("Couldn't determine residence name.")
+
+    except InvalidInputError:
+        await message.reply(ex.error_message_english)
+
+    except RateLimitExceededError:
+        await message.reply(ex.error_message_english)
+
+    except UnknownError:
+        await message.reply(ex.error_message_english)
 
 
 @dispatcher.message_handler()
