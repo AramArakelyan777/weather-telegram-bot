@@ -7,6 +7,7 @@ from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from pyowm import OWM
 from pyowm.utils.config import get_default_config
+from opencage.geocoder import OpenCageGeocode
 
 import expressions as ex
 
@@ -135,6 +136,14 @@ async def to_query_language(call: types.callback_query):
                                    reply_markup=get_keyboard(ex.shareButtonTextEnglish))
     finally:
         await bot.answer_callback_query(call.id)
+
+
+@dispatcher.message_handler(content_types=["location"])
+async def handle_location(message: types.Message):
+    lat = message.location.latitude
+    lon = message.location.longitude
+    reply = "latitude:  {}\nlongitude: {}".format(lat, lon)
+    await message.answer(reply)
 
 
 @dispatcher.message_handler()
