@@ -22,6 +22,18 @@ connection_pool = psycopg2.pool.SimpleConnectionPool(
 )
 
 
+def get_keyboard():
+    """
+    Creates a reply markup keyboard with a share location button and returns it.
+    :return: keyboard object
+    """
+
+    keyboard = types.ReplyKeyboardMarkup()
+    button = types.KeyboardButton("Share Location 📍", request_location=True)
+    keyboard.add(button)
+    return keyboard
+
+
 def insert_user_data(connection, connection_cursor, first_name, last_name, current_language, telegram_id):
     """
     Insert the user data into the database.
