@@ -55,7 +55,7 @@ def insert_user_data(connection, connection_cursor, first_name, last_name, curre
 
     if not existing_user_id:
         connection_cursor.execute(
-            "INSERT INTO users (fname, lname, language, tg_id) VALUES (%s, %s, %s, %s)",
+            "INSERT INTO users (fname, lname, language, tg_id, location) VALUES (%s, %s, %s, %s)",
             (first_name, last_name, current_language, telegram_id,)
         )
         connection.commit()
@@ -146,14 +146,13 @@ async def handle_location(message: types.Message):
     latitude, longitude = location.latitude, location.longitude
 
     try:
+
         result = geocoder.reverse_geocode(latitude, longitude)
 
         if result and "components" in result[0] and "city" in result[0]["components"]:
-            residence_name = result[0]["components"]["city"]
-            await message.reply(f"{residence_name}")
+            await bot.send_message(message.from_user.id, text=result[0]["components"]["city"])
         elif "country" in result[0]["components"]:
-            residence_name = result[0]["components"]["country"]
-            await message.reply(f"{residence_name}")
+            await bot.send_message(message.from_user.id, text=result[0]["components"]["country"])
         else:
             await bot.send_message(message.from_user.id, text="N/A")
 
@@ -168,7 +167,7 @@ async def handle_location(message: types.Message):
 
 
 @dispatcher.message_handler()
-async def get_weather_and_send_messages(message):
+async def get_weather_and_send_messages(message: types.Message):
     """
     Get the weather information, send some appropriate messages.
     :param message: the message the user sends
@@ -208,6 +207,7 @@ async def get_weather_and_send_messages(message):
             current_mixed_expressions = ex.mixed_expressions_english
 
         location = message.text
+
         config_dict = get_default_config()
         config_dict["language"] = user_language
         owm = OWM(environ["OWM_API"], config=config_dict)
@@ -229,7 +229,7 @@ async def get_weather_and_send_messages(message):
 
         await bot.send_message(message.from_user.id,
                                current_weather_info.format(location, temperature, fahrenheit, status, cloudiness,
-                                                           wind_speed, mph, humidity))
+                                                           wind_speed, mph, humidity), )
 
         if temp <= -10:
             await bot.send_message(message.from_user.id, current_temperature_expressions[0])
