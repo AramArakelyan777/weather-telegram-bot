@@ -148,18 +148,23 @@ async def handle_location(message: types.Message):
     try:
         result = geocoder.reverse_geocode(latitude, longitude)
 
-        if result and "components" in result[0]:
+        if result and "components" in result[0] and "city" in result[0]["components"]:
             residence_name = result[0]["components"]["city"]
             await message.reply(f"{residence_name}")
+        elif "country" in result[0]["components"]:
+            residence_name = result[0]["components"]["country"]
+            await message.reply(f"{residence_name}")
+        else:
+            await bot.send_message(message.from_user.id, text="N/A")
 
     except InvalidInputError:
-        await message.reply(ex.error_message_english)
+        await bot.send_message(message.from_user.id, text=ex.error_message_english)
 
     except RateLimitExceededError:
-        await message.reply(ex.error_message_english)
+        await bot.send_message(message.from_user.id, text=ex.error_message_english)
 
     except UnknownError:
-        await message.reply(ex.error_message_english)
+        await bot.send_message(message.from_user.id, text=ex.error_message_english)
 
 
 @dispatcher.message_handler()
