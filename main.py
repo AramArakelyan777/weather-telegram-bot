@@ -13,6 +13,7 @@ import expressions as ex
 
 bot = Bot(environ["BOT_TOKEN"])
 dispatcher = Dispatcher(bot)
+geocoder = OpenCageGeocode(environ["OPEN_CAGE_API_KEY"])
 
 connection_pool = psycopg2.pool.SimpleConnectionPool(
     minconn=1,
