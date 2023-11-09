@@ -1,3 +1,4 @@
 psycopg2~=2.9.5
 pyowm~=3.3.0
 aiogram~=2.24
+opencage~=2.3.0
