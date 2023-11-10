@@ -162,7 +162,6 @@ async def to_query_language(call: types.callback_query):
         else:
             await bot.send_message(user_id, text=ex.welcome_message_english,
                                    reply_markup=get_keyboard(ex.shareButtonTextEnglish))
-        logging.info(f"Language selected by user {call.message.chat.id}: {chosen_language}")
 
     except Exception as exc:
         logging.error(f"Error processing callback query: {exc}")
