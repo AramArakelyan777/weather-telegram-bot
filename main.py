@@ -29,7 +29,7 @@ def get_keyboard(text):
     """
     Creates a reply markup keyboard with a share location button and returns it.
     :return: keyboard object
-    The function creates a ReplyKeyboardMarkup and a button, and adds the button to it and then returns the keyboard.
+    The function creates a ReplyKeyboardMarkup and a button, and adds the button to it.
     """
 
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -90,6 +90,7 @@ async def start_handler(message: types.Message):
                          current_language="", telegram_id=telegram_id)
 
         await bot.send_message(telegram_id, ex.start_message.format(first_name, first_name), reply_markup=markup)
+
     finally:
         cursor.close()
         conn.commit()
@@ -137,6 +138,7 @@ async def to_query_language(call: types.callback_query):
         else:
             await bot.send_message(user_id, text=ex.welcome_message_english,
                                    reply_markup=get_keyboard(ex.shareButtonTextEnglish))
+
     finally:
         await bot.answer_callback_query(call.id)
 
@@ -144,18 +146,17 @@ async def to_query_language(call: types.callback_query):
 @dispatcher.message_handler(content_types=["location"])
 async def handle_location(message: types.Message):
     """
-    Handles the user location using OpenCage geocoder.
-    :param message: the user's message
+    Gets the user location and sends the information.
+    :param message: user message
     :return: None
-    The function gets the user's location's longitude and latitude, tries to geocode
-    it to a city or a country name and handles some errors if there are some.
+    The function gets the user longitude and latitude and uses
+    OpenCage to geocode it into a city or a country name.
     """
 
     location = message.location
     latitude, longitude = location.latitude, location.longitude
 
     try:
-
         result = geocoder.reverse_geocode(latitude, longitude)
 
         if result and "components" in result[0] and "city" in result[0]["components"]:
@@ -165,13 +166,7 @@ async def handle_location(message: types.Message):
         else:
             await bot.send_message(message.from_user.id, text="N/A")
 
-    except InvalidInputError:
-        await bot.send_message(message.from_user.id, text=ex.error_message_english)
-
-    except RateLimitExceededError:
-        await bot.send_message(message.from_user.id, text=ex.error_message_english)
-
-    except UnknownError:
+    except (InvalidInputError, RateLimitExceededError, UnknownError):
         await bot.send_message(message.from_user.id, text=ex.error_message_english)
 
 
@@ -201,7 +196,6 @@ async def get_weather_and_send_messages(message: types.Message):
         user_language = "en"
 
     try:
-
         if user_language == "ru":
             current_weather_info = ex.weather_info_russian
             current_temperature_expressions = ex.temperature_expressions_russian
@@ -277,8 +271,10 @@ async def get_weather_and_send_messages(message: types.Message):
 
         if 14 < temp <= 36 and wind < 8 and cloud < 55:
             await bot.send_message(message.from_user.id, current_mixed_expressions[0])
+
         if 14 < temp < 39 and wind < 8 and cloud < 55:
             await bot.send_message(message.from_user.id, current_mixed_expressions[1])
+
     except pyowm.commons.exceptions.NotFoundError:
         if user_language == "ru":
             current_not_found = ex.not_found_expression_russian
@@ -297,6 +293,7 @@ async def get_weather_and_send_messages(message: types.Message):
                 await bot.send_message(message.from_user.id, ex.error_message_russian)
             else:
                 await bot.send_message(message.from_user.id, ex.error_message_english)
+
     finally:
         cursor.close()
         conn.commit()
