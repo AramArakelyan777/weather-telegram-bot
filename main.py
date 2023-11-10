@@ -29,6 +29,7 @@ def get_keyboard(text):
     """
     Creates a reply markup keyboard with a share location button and returns it.
     :return: keyboard object
+    The function creates a ReplyKeyboardMarkup and a button, and adds the button to it and then returns the keyboard.
     """
 
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -142,6 +143,14 @@ async def to_query_language(call: types.callback_query):
 
 @dispatcher.message_handler(content_types=["location"])
 async def handle_location(message: types.Message):
+    """
+    Handles the user location using OpenCage geocoder.
+    :param message: the user's message
+    :return: None
+    The function gets the user's location's longitude and latitude, tries to geocode
+    it to a city or a country name and handles some errors if there are some.
+    """
+
     location = message.location
     latitude, longitude = location.latitude, location.longitude
 
