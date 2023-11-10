@@ -160,7 +160,7 @@ async def handle_location(message: types.Message):
 
         if result and "components" in result[0] and "city" in result[0]["components"]:
             await bot.send_message(message.from_user.id, text=result[0]["components"]["city"])
-        elif "country" in result[0]["components"]:
+        elif result and "components" in result[0] and "country" in result[0]["components"]:
             await bot.send_message(message.from_user.id, text=result[0]["components"]["country"])
         else:
             await bot.send_message(message.from_user.id, text="N/A")
