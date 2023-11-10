@@ -1,24 +1,23 @@
 # WeatherAnywhere Telegram Bot
 
-
 ## Table of Contents
 
 - [Table of Contents](#table-of-contents)
 - [Introduction](#introduction)
 - [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Configuration](#configuration)
+    - [Prerequisites](#prerequisites)
+    - [Installation](#installation)
+    - [Configuration](#configuration)
 - [Usage](#usage)
 - [Features](#features)
 - [Contact](#contact)
 - [License](#license)
 
-
 ## Introduction
 
-WeatherAnywhere is a Telegram chatbot that provides users with current weather information and useful advice based on their location input. It also stores user data in a PostgreSQL database and offers hints for valid locations if users make mistakes while inputting locations.
-
+WeatherAnywhere is a Telegram chatbot that provides users with current weather information and useful advice based on
+their location input. It also stores user data in a PostgreSQL database and offers hints for valid locations if users
+make mistakes while inputting locations.
 
 ## Getting Started
 
@@ -39,17 +38,17 @@ Before you begin, ensure you have the following:
 
     ```bash
     https://github.com/AramArakelyan777/weather-telegram-bot
-   
+
 2. Change into the project directory:
 
     ```bash
     cd weather-telegram-bot
-   
+
 3. Create a virtual environment
 
     ```bash
     python -m venv venv
-   
+
 4. Install the project dependencies from the requirements.txt file:
 
     ```bash
@@ -64,13 +63,11 @@ Create the necessary venv variables:
     PASSWORD=your-database-password
     OWM_API=your-openweathermap-api
 
-
 ## Usage
 
 To start the Bot, run the following command and use the bot in telegram:
 
     python main.py
-
 
 ## Features
 
@@ -80,7 +77,6 @@ To start the Bot, run the following command and use the bot in telegram:
 4. Location Hints: If a user makes a mistake while inputting a location, the bot provides hints from the database.
 5. Language: The bot is available in 2 languages: English and Russian.
 
-
 ## Contact
 
 If you have questions or feedback, please reach out to me by email:
@@ -88,7 +84,6 @@ If you have questions or feedback, please reach out to me by email:
     aram777arakelyan@gmail.com
 
 I appreciate your support!
-
 
 ## License
 
