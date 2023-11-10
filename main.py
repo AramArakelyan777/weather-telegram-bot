@@ -1,4 +1,5 @@
 import logging
+import sys
 from os import environ
 
 import psycopg2.pool
@@ -17,7 +18,11 @@ bot = Bot(environ["BOT_TOKEN"])
 dispatcher = Dispatcher(bot)
 geocoder = OpenCageGeocode(environ["OPEN_CAGE_API_KEY"])
 
-logging.basicConfig(filename='bot.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename="bot.log", level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setLevel(logging.INFO)
+logging.getLogger().addHandler(console_handler)
 
 connection_pool = psycopg2.pool.SimpleConnectionPool(
     minconn=1,
