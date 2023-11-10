@@ -64,7 +64,7 @@ def insert_user_data(connection, connection_cursor, first_name, last_name, curre
 
         if not existing_user_id:
             connection_cursor.execute(
-                "INSERT INTO users (fname, lname, language, tg_id, location) VALUES (%s, %s, %s, %s)",
+                "INSERT INTO users (fname, lname, language, tg_id) VALUES (%s, %s, %s, %s)",
                 (first_name, last_name, current_language, telegram_id,)
             )
             connection_cursor.close()
