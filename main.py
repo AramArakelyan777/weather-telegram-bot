@@ -70,7 +70,8 @@ def insert_user_data(connection, connection_cursor, first_name, last_name, curre
             connection_cursor.close()
             connection.commit()
             connection_pool.putconn(connection)
-        logging.info(f"User data inserted successfully for {telegram_id}")
+
+            logging.info(f"User data inserted successfully for {telegram_id}")
 
     except Exception as exc:
         logging.error(f"Error handling start command: {exc}")
