@@ -195,7 +195,7 @@ async def get_weather_and_send_messages(message: types.Message):
                 elif result and "components" in result[0] and "country" in result[0]["components"]:
                     location = result[0]["components"]["country"]
                 else:
-                    return
+                    await bot.send_message(message.from_user.id, ex.error_message_english)
 
             except (InvalidInputError, RateLimitExceededError, UnknownError):
                 await bot.send_message(message.from_user.id, text=ex.error_message_english)
@@ -285,6 +285,12 @@ async def get_weather_and_send_messages(message: types.Message):
                 await bot.send_message(message.from_user.id, ex.error_message_russian)
             else:
                 await bot.send_message(message.from_user.id, ex.error_message_english)
+
+    except AssertionError:
+        return
+    except Exception as err:
+        print(err)
+        return
 
     finally:
         cursor.close()
