@@ -1,3 +1,4 @@
+import logging
 from os import environ
 
 import psycopg2.pool
@@ -15,6 +16,8 @@ import expressions as ex
 bot = Bot(environ["BOT_TOKEN"])
 dispatcher = Dispatcher(bot)
 geocoder = OpenCageGeocode(environ["OPEN_CAGE_API_KEY"])
+
+logging.basicConfig(filename='bot.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 connection_pool = psycopg2.pool.SimpleConnectionPool(
     minconn=1,
@@ -50,16 +53,22 @@ def insert_user_data(connection, connection_cursor, first_name, last_name, curre
     :return: None
     The function inserts only unique user data into a postgresql database.
     """
+    try:
+        connection_cursor.execute("SELECT id FROM users WHERE tg_id = %s", (telegram_id,))
+        existing_user_id = connection_cursor.fetchone()
 
-    connection_cursor.execute("SELECT id FROM users WHERE tg_id = %s", (telegram_id,))
-    existing_user_id = connection_cursor.fetchone()
+        if not existing_user_id:
+            connection_cursor.execute(
+                "INSERT INTO users (fname, lname, language, tg_id, location) VALUES (%s, %s, %s, %s)",
+                (first_name, last_name, current_language, telegram_id,)
+            )
+            connection_cursor.close()
+            connection.commit()
+            connection_pool.putconn(connection)
+        logging.info(f"User data inserted successfully for {telegram_id}")
 
-    if not existing_user_id:
-        connection_cursor.execute(
-            "INSERT INTO users (fname, lname, language, tg_id, location) VALUES (%s, %s, %s, %s)",
-            (first_name, last_name, current_language, telegram_id,)
-        )
-        connection.commit()
+    except Exception as exc:
+        logging.error(f"Error handling start command: {exc}")
 
 
 @dispatcher.message_handler(commands=["start"])
@@ -90,6 +99,10 @@ async def start_handler(message: types.Message):
                          current_language="", telegram_id=telegram_id)
 
         await bot.send_message(telegram_id, ex.start_message.format(first_name, first_name), reply_markup=markup)
+        logging.info(f"Start command processed for user {message.from_user.id}")
+
+    except Exception as e:
+        logging.error(f"Error handling start command: {e}")
 
     finally:
         cursor.close()
@@ -106,7 +119,12 @@ async def help_the_user(message: types.Message):
     The function sends a help message after the user enters the respective command.
     """
 
-    await bot.send_message(message.from_user.id, ex.help_message)
+    try:
+        await bot.send_message(message.from_user.id, ex.help_message)
+        logging.info(f"Help command processed for user {message.from_user.id}")
+
+    except Exception as exc:
+        logging.error(f"Error handling help command: {exc}")
 
 
 @dispatcher.callback_query_handler(lambda c: c.data in ["enId", "ruId"])
@@ -138,6 +156,10 @@ async def to_query_language(call: types.callback_query):
         else:
             await bot.send_message(user_id, text=ex.welcome_message_english,
                                    reply_markup=get_keyboard(ex.shareButtonTextEnglish))
+        logging.info(f"Language selected by user {call.message.chat.id}: {chosen_language}")
+
+    except Exception as exc:
+        logging.error(f"Error processing callback query: {exc}")
 
     finally:
         await bot.answer_callback_query(call.id)
@@ -266,6 +288,7 @@ async def get_weather_and_send_messages(message: types.Message):
 
         if 14 < temp < 39 and wind < 8 and cloud < 55:
             await bot.send_message(message.from_user.id, current_mixed_expressions[1])
+        logging.info(f"Weather information sent successfully to user {message.from_user.id}")
 
     except pyowm.commons.exceptions.NotFoundError:
         if user_language == "ru":
@@ -286,11 +309,8 @@ async def get_weather_and_send_messages(message: types.Message):
             else:
                 await bot.send_message(message.from_user.id, ex.error_message_english)
 
-    except AssertionError:
-        return
-    except Exception as err:
-        print(err)
-        return
+    except Exception as exc:
+        logging.error(f"Error processing message: {exc}")
 
     finally:
         cursor.close()
