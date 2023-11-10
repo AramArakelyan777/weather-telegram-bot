@@ -143,34 +143,7 @@ async def to_query_language(call: types.callback_query):
         await bot.answer_callback_query(call.id)
 
 
-@dispatcher.message_handler(content_types=["location"])
-async def handle_location(message: types.Message):
-    """
-    Gets the user location and sends the information.
-    :param message: user message
-    :return: None
-    The function gets the user longitude and latitude and uses
-    OpenCage to geocode it into a city or a country name.
-    """
-
-    location = message.location
-    latitude, longitude = location.latitude, location.longitude
-
-    try:
-        result = geocoder.reverse_geocode(latitude, longitude)
-
-        if result and "components" in result[0] and "city" in result[0]["components"]:
-            await bot.send_message(message.from_user.id, text=result[0]["components"]["city"])
-        elif result and "components" in result[0] and "country" in result[0]["components"]:
-            await bot.send_message(message.from_user.id, text=result[0]["components"]["country"])
-        else:
-            await bot.send_message(message.from_user.id, text="N/A")
-
-    except (InvalidInputError, RateLimitExceededError, UnknownError):
-        await bot.send_message(message.from_user.id, text=ex.error_message_english)
-
-
-@dispatcher.message_handler()
+@dispatcher.message_handler(content_types=["location", "text"])
 async def get_weather_and_send_messages(message: types.Message):
     """
     Get the weather information, send some appropriate messages.
@@ -209,7 +182,26 @@ async def get_weather_and_send_messages(message: types.Message):
             current_wind_expressions = ex.wind_expressions_english
             current_mixed_expressions = ex.mixed_expressions_english
 
-        location = message.text
+        location = ""
+        if message.content_type == types.ContentType.LOCATION:
+            loc = message.location
+            latitude, longitude = loc.latitude, loc.longitude
+
+            try:
+                result = geocoder.reverse_geocode(latitude, longitude)
+
+                if result and "components" in result[0] and "city" in result[0]["components"]:
+                    location = result[0]["components"]["city"]
+                elif result and "components" in result[0] and "country" in result[0]["components"]:
+                    location = result[0]["components"]["country"]
+                else:
+                    return
+
+            except (InvalidInputError, RateLimitExceededError, UnknownError):
+                await bot.send_message(message.from_user.id, text=ex.error_message_english)
+
+        else:
+            location = message.text
 
         config_dict = get_default_config()
         config_dict["language"] = user_language
