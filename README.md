@@ -15,22 +15,23 @@
 
 ## Introduction
 
-WeatherAnywhere is a Telegram chatbot that provides users with current weather information and useful advice based on
-their location input. It also stores user data in a PostgreSQL database and offers hints for valid locations if users
-make mistakes while inputting locations.
+WeatherAnywhere is a Telegram chatbot that provides its users with current weather information and useful advice based
+on their location input. The users can also send their location. It also stores user data in a PostgreSQL database and
+offers hints for valid locations if users make mistakes while inputting locations.
 
 ## Getting Started
 
-Follow these instructions to set up and run the WeatherAnywhere on your machine or server.
+Follow these instructions to set up and run the WeatherAnywhere bot on your machine or server.
 
 ### Prerequisites
 
 Before you begin, ensure you have the following:
 
 1. Python 3 installed
-2. Postgresql database installed and configured
+2. PostgreSQL database installed and configured
 3. A Telegram bot token (obtain one by talking to the BotFather)
 4. OpenWeatherMap API configured
+5. OpenCage API configured
 
 ### Installation
 
@@ -62,6 +63,7 @@ Create the necessary venv variables:
     DB_NAME=your-database-name
     PASSWORD=your-database-password
     OWM_API=your-openweathermap-api
+    OPEN_CAGE_API_KEY=your-opencage-api-key
 
 ## Usage
 
@@ -71,9 +73,9 @@ To start the Bot, run the following command and use the bot in telegram:
 
 ## Features
 
-1. Weather Information: The bot provides the current weather information based on the user location input.
-2. Advice: The bot offers useful piece of advice and/or some funny messages depending on the weather conditions.
-3. Database Storage: User data is stored in a Postgresql database for future interactions.
+1. Weather Information: The bot provides the current weather information based on the user location or input.
+2. Advice: The bot offers useful pieces of advice and/or some funny messages depending on the weather conditions.
+3. Database Storage: User data is stored in a PostgreSQL database for future interactions.
 4. Location Hints: If a user makes a mistake while inputting a location, the bot provides hints from the database.
 5. Language: The bot is available in 2 languages: English and Russian.
 
