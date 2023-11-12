@@ -59,7 +59,7 @@ Before you begin, ensure you have the following:
 
 Create the necessary venv variables:
 
-    TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+    BOT_TOKEN=your_telegram_bot_token
     DB_NAME=your-database-name
     DB_PASSWORD=your-database-password
     OWM_API=your-openweathermap-api
