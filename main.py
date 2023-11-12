@@ -29,7 +29,7 @@ connection_pool = psycopg2.pool.SimpleConnectionPool(
     maxconn=100,
     dbname=environ["DB_NAME"],
     user="postgres",
-    password=environ["PASSWORD"],
+    password=environ["DB_PASSWORD"],
 )
 
 

@@ -61,7 +61,7 @@ Create the necessary venv variables:
 
     TELEGRAM_BOT_TOKEN=your_telegram_bot_token
     DB_NAME=your-database-name
-    PASSWORD=your-database-password
+    DB_PASSWORD=your-database-password
     OWM_API=your-openweathermap-api
     OPEN_CAGE_API_KEY=your-opencage-api-key
 
