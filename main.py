@@ -179,7 +179,7 @@ async def get_weather_and_send_messages(message: types.Message):
     The function gets the chosen language of the current user from the database
     table and gets the weather information using an API and sends it to the user.
     It also sends some messages depending on the weather. If the name of a location
-    entered by the user does not exist, the function will check a similar name
+    entered/sent by the user does not exist, the function will check a similar name
     of a location and send it with the name of the country it is in, getting
     that information from the database. If it does not found anything, it
     will inform the user about it.
