@@ -19,9 +19,9 @@ weather_info_english = "🌡 Temperature in {}: {}({}).\n🌦 Weather status: {}
 weather_info_russian = "🌡 Температура в {}: {}({}).\n🌦 Статус погоды: {}.\n☁ Процент облачности: {}.\n🌬 Скорость " \
                        "ветра: {} км/ч({} миль/ч).\n💧 Влажность: {}. "
 
-error_message_english = "Unable to find the resource.❌\nPlease try again."
+error_message_english = "Unable to find the resources.❌\nPlease try again."
 
-error_message_russian = "Не удалось найти ресурс❌.\nПожалуйста, попробуйте еще раз."
+error_message_russian = "Не удалось найти ресурсы❌.\nПожалуйста, попробуйте снова."
 
 temperature_expressions_english = ["I'd stay at home today.", "It's cold, find something warm to wear.🧣",
                                    "Summer clothes are prohibited!🧤", "It's a warm day today.🌞",
