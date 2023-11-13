@@ -298,8 +298,10 @@ async def get_weather_and_send_messages(message: types.Message):
     except pyowm.commons.exceptions.NotFoundError:
         if user_language == "ru":
             current_not_found = ex.not_found_expression_russian
+            current_error_message = ex.error_message_russian
         else:
             current_not_found = ex.not_found_expression_english
+            current_error_message = ex.error_message_english
 
         cursor.execute(sql.SQL("SELECT city, country FROM cities WHERE city ILIKE %s"), [f"%{message.text}%"])
         rows = cursor.fetchall()
@@ -309,10 +311,7 @@ async def get_weather_and_send_messages(message: types.Message):
             options_str = "\n".join(options)
             await bot.send_message(message.from_user.id, current_not_found.format(options_str))
         else:
-            if user_language == "ru":
-                await bot.send_message(message.from_user.id, ex.error_message_russian)
-            else:
-                await bot.send_message(message.from_user.id, ex.error_message_english)
+            await bot.send_message(message.from_user.id, current_error_message)
 
     except Exception as exc:
         logging.error(f"Error processing message: {exc}")
