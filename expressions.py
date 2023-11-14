@@ -51,7 +51,7 @@ mixed_expressions_english = ["Time for merrymaking.🕶", "It seems that it's th
 
 mixed_expressions_russian = ["Время для веселья.🕶", "Кажется пора замутить вечеринку с друзьями!🌟"]
 
-not_found_expression_english = "Perhaps you mean one of the following:\n{}."
+not_found_expression_english = "Perhaps you meant one of the following:\n{}."
 
 not_found_expression_russian = "Возможно вы имели в виду что-то из этого:\n{}."
 
