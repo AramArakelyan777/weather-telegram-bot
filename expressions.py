@@ -9,9 +9,9 @@ help_message = ("To change the language, enter /start, choose a language, and en
                 "местоположение (убедитесь, что ваше местоположение на вашем телефоне включено). Если бот "
                 "не отвечает, пожалуйста, подождите; возможны кратковременные задержки подключения.")
 
-welcome_message_english = "My name is WeatherAnywhere.\nWrite the name of any location in the World.📍"
+welcome_message_english = "My name is WeatherAnywhere.\nWrite any location name in the world.📍"
 
-welcome_message_russian = "Меня зовут WeatherAnywhere.\nНапишите название любой локации на Планете.📍 "
+welcome_message_russian = "Меня зовут WeatherAnywhere.\nНапишите название любой локации на планете.📍 "
 
 weather_info_english = "🌡 Temperature in {}: {}({}).\n🌦 Weather status: {}." \
                        "\n☁ Cloudiness: {}.\n🌬 Wind speed: {} KM/H({} MPH).\n💧 Humidity: {}. "
