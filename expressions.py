@@ -59,6 +59,6 @@ shareButtonTextEnglish = "Share Location 📍"
 
 shareButtonTextRussian = "Поделиться локацией 📍"
 
-loadingTextEnglish = "Fetching data...⌛️"
+loading_text_english = "Fetching data...⌛️"
 
-loadingTextRussian = "Получение данных...⌛️"
+loading_text_russian = "Получение данных...⌛️"
