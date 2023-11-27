@@ -1,4 +1,5 @@
 import logging
+import asyncio
 import sys
 from os import environ
 
@@ -195,6 +196,8 @@ async def get_weather_and_send_messages(message: types.Message):
     else:
         user_language = "en"
 
+    loading_message = None
+
     try:
         if user_language == "ru":
             current_weather_info = ex.weather_info_russian
@@ -202,12 +205,17 @@ async def get_weather_and_send_messages(message: types.Message):
             current_cloud_expressions = ex.cloud_expressions_russian
             current_wind_expressions = ex.wind_expressions_russian
             current_mixed_expressions = ex.mixed_expressions_russian
+            current_loading_text = ex.loadingTextRussian
         else:
             current_weather_info = ex.weather_info_english
             current_temperature_expressions = ex.temperature_expressions_english
             current_cloud_expressions = ex.cloud_expressions_english
             current_wind_expressions = ex.wind_expressions_english
             current_mixed_expressions = ex.mixed_expressions_english
+            current_loading_text = ex.loadingTextEnglish
+
+        loading_message = await bot.send_message(message.from_user.id, text=current_loading_text)
+        await asyncio.sleep(1)
 
         location = ""
         if message.content_type == types.ContentType.LOCATION:
@@ -236,6 +244,9 @@ async def get_weather_and_send_messages(message: types.Message):
         mgr = owm.weather_manager()
         observation = mgr.weather_at_place(location)
         weather = observation.weather
+
+        if loading_message:
+            await bot.delete_message(message.from_user.id, loading_message.message_id)
 
         temperature = str(round(weather.temperature("celsius")["temp"])) + "°C"
         wind_speed = str(weather.wind()["speed"])
@@ -305,6 +316,9 @@ async def get_weather_and_send_messages(message: types.Message):
 
         cursor.execute(sql.SQL("SELECT city, country FROM cities WHERE city ILIKE %s"), [f"%{message.text}%"])
         rows = cursor.fetchall()
+
+        if loading_message:
+            await bot.delete_message(message.from_user.id, loading_message.message_id)
 
         if rows:
             options = [f"{row[0]}, {row[1]}" for row in rows]
