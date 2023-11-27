@@ -73,11 +73,12 @@ To start the Bot, run the following command and use the bot in telegram:
 
 ## Features
 
-1. Weather Information: The bot provides the current weather information based on the user location or input.
-2. Advice: The bot offers useful pieces of advice and/or some funny messages depending on the weather conditions.
-3. Database Storage: User data is stored in a PostgreSQL database for future interactions.
-4. Location Hints: If a user makes a mistake while inputting a location, the bot provides hints from the database.
-5. Language: The bot is available in 2 languages: English and Russian.
+1. User-friendly interface: Beautiful interface, menu of commands, help message opportunity in the bot.
+2. Weather Information: The bot provides the current weather information based on the user location or input.
+3. Advice: The bot offers useful pieces of advice and/or some funny messages depending on the weather conditions.
+4. Database Storage: User data is stored in a PostgreSQL database for future interactions.
+5. Location Hints: If a user makes a mistake while inputting a location, the bot provides hints from the database.
+6. Language: The bot is available in 2 languages: English and Russian.
 
 ## Contact
 
