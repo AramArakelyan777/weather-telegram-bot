@@ -58,3 +58,7 @@ not_found_expression_russian = "Возможно вы имели в виду ч�
 shareButtonTextEnglish = "Share Location 📍"
 
 shareButtonTextRussian = "Поделиться локацией 📍"
+
+loadingTextEnglish = "Fetching data...⌛️"
+
+loadingTextRussian = "Получение данных...⌛️"
