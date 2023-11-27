@@ -205,14 +205,14 @@ async def get_weather_and_send_messages(message: types.Message):
             current_cloud_expressions = ex.cloud_expressions_russian
             current_wind_expressions = ex.wind_expressions_russian
             current_mixed_expressions = ex.mixed_expressions_russian
-            current_loading_text = ex.loadingTextRussian
+            current_loading_text = ex.loading_text_russian
         else:
             current_weather_info = ex.weather_info_english
             current_temperature_expressions = ex.temperature_expressions_english
             current_cloud_expressions = ex.cloud_expressions_english
             current_wind_expressions = ex.wind_expressions_english
             current_mixed_expressions = ex.mixed_expressions_english
-            current_loading_text = ex.loadingTextEnglish
+            current_loading_text = ex.loading_text_english
 
         loading_message = await bot.send_message(message.from_user.id, text=current_loading_text)
         await asyncio.sleep(1)
