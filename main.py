@@ -127,7 +127,20 @@ async def help_the_user(message: types.Message):
     """
 
     try:
-        await bot.send_message(message.from_user.id, ex.help_message)
+        conn = connection_pool.getconn()
+        cursor = conn.cursor()
+        cursor.execute("SELECT language FROM users WHERE tg_id = %s", (message.from_user.id,))
+        user_language = cursor.fetchone()
+
+        if user_language:
+            user_language = user_language[0]
+        else:
+            user_language = "en"
+
+        if user_language == "ru":
+            await bot.send_message(message.from_user.id, ex.help_message_russian)
+        else:
+            await bot.send_message(message.from_user.id, ex.help_message_english)
         logging.info(f"Help command processed for user {message.from_user.id}")
 
     except Exception as exc:
