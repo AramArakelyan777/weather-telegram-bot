@@ -132,12 +132,7 @@ async def help_the_user(message: types.Message):
         cursor.execute("SELECT language FROM users WHERE tg_id = %s", (message.from_user.id,))
         user_language = cursor.fetchone()
 
-        if user_language:
-            user_language = user_language[0]
-        else:
-            user_language = "en"
-
-        if user_language == "ru":
+        if user_language[0] == "ru":
             await bot.send_message(message.from_user.id, ex.help_message_russian)
         else:
             await bot.send_message(message.from_user.id, ex.help_message_english)
