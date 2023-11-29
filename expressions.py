@@ -2,12 +2,14 @@
 
 start_message = "Hi, {}, hope you are doing well!\nPlease choose a language.🌍"
 
-help_message = ("ℹ️ To change the language, enter /start, choose a language, and enter the name of a "
-                "location, or send your location (ensure your location on your phone is turned on). If the bot "
-                "does not respond, please wait; there may be short-term connection delays.\n\nℹ️ Чтобы изменить язык, "
-                "введите /start, выберите язык и введите название местоположения или отправьте свое "
-                "местоположение (убедитесь, что ваше местоположение на вашем телефоне включено). Если бот "
-                "не отвечает, пожалуйста, подождите; возможны кратковременные задержки подключения.")
+help_message_english = ("ℹ️ To change the language, enter /start, choose a language, and enter the name of a location, "
+                        "or send your location (ensure your location on your phone is turned on). If the bot does not "
+                        "respond, please wait; there may be short-term connection delays.")
+
+help_message_russian = ("ℹ️ Чтобы изменить язык, введите /start, выберите язык и введите название местоположения или "
+                        "отправьте свое местоположение (убедитесь, что ваше местоположение на вашем телефоне "
+                        "включено). Если бот не отвечает, пожалуйста, подождите; возможны кратковременные задержки "
+                        "подключения.")
 
 welcome_message_english = "My name is WeatherAnywhere.\nWrite any location name in the world.📍"
 
