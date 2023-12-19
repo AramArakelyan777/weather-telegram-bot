@@ -49,32 +49,30 @@ def get_keyboard(text):
     return keyboard
 
 
-def insert_user_data(connection, connection_cursor, first_name, last_name, current_language, telegram_id):
+def insert_user_data(connection, first_name, last_name, current_language, telegram_id):
     """
     Insert the user data into the database.
     :param connection: database connection,
-    :param connection_cursor: database connection cursor,
     :param first_name: first name of the user,
     :param last_name: last name of the user,
     :param current_language: the language the user has chosen,
     :param telegram_id: user telegram id,
     :return: None
-    The function inserts only unique user data into a postgresql database.
+    The function inserts only unique user data into a PostgreSQL database.
     """
     try:
-        connection_cursor.execute("SELECT id FROM users WHERE tg_id = %s", (telegram_id,))
-        existing_user_id = connection_cursor.fetchone()
+        with connection.cursor() as connection_cursor:
+            connection_cursor.execute("SELECT id FROM users WHERE tg_id = %s", (telegram_id,))
+            existing_user_id = connection_cursor.fetchone()
 
-        if not existing_user_id:
-            connection_cursor.execute(
-                "INSERT INTO users (fname, lname, language, tg_id) VALUES (%s, %s, %s, %s)",
-                (first_name, last_name, current_language, telegram_id,)
-            )
-            connection_cursor.close()
-            connection.commit()
-            connection_pool.putconn(connection)
+            if not existing_user_id:
+                connection_cursor.execute(
+                    "INSERT INTO users (fname, lname, language, tg_id) VALUES (%s, %s, %s, %s)",
+                    (first_name, last_name, current_language, telegram_id,)
+                )
+                connection.commit()
 
-            logging.info(f"User data inserted successfully for {telegram_id}")
+                logging.info(f"User data inserted successfully for {telegram_id}")
 
     except Exception as exc:
         logging.error(f"Error handling start command: {exc}")
@@ -90,9 +88,6 @@ async def start_handler(message: types.Message):
     language, inserts the user data and sends a start message.
     """
 
-    conn = connection_pool.getconn()
-    cursor = conn.cursor()
-
     try:
         markup = InlineKeyboardMarkup()
         english_button = InlineKeyboardButton(text="🇬🇧 English", callback_data="enId")
@@ -104,8 +99,8 @@ async def start_handler(message: types.Message):
         last_name = message.from_user.last_name
         telegram_id = message.from_user.id
 
-        insert_user_data(connection=conn, connection_cursor=cursor, first_name=first_name, last_name=last_name,
-                         current_language="", telegram_id=telegram_id)
+        with connection_pool.getconn() as conn:
+            insert_user_data(conn, first_name, last_name, "", telegram_id)
 
         await bot.send_message(telegram_id, ex.start_message.format(first_name, first_name), reply_markup=markup)
         logging.info(f"Start command processed for user {message.from_user.id}")
@@ -114,8 +109,6 @@ async def start_handler(message: types.Message):
         logging.error(f"Error handling start command: {e}")
 
     finally:
-        cursor.close()
-        conn.commit()
         connection_pool.putconn(conn)
 
 
@@ -127,18 +120,17 @@ async def help_the_user(message: types.Message):
     :return: None
     The function sends a help message after the user enters the respective command.
     """
-
     try:
-        conn = connection_pool.getconn()
-        cursor = conn.cursor()
-        cursor.execute("SELECT language FROM users WHERE tg_id = %s", (message.from_user.id,))
-        user_language = cursor.fetchone()
+        with connection_pool.getconn() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT language FROM users WHERE tg_id = %s", (message.from_user.id,))
+                user_language = cursor.fetchone()
 
-        if user_language[0] == "ru":
-            await bot.send_message(message.from_user.id, ex.help_message_russian)
-        else:
-            await bot.send_message(message.from_user.id, ex.help_message_english)
-        logging.info(f"Help command processed for user {message.from_user.id}")
+                if user_language[0] == "ru":
+                    await bot.send_message(message.from_user.id, ex.help_message_russian)
+                else:
+                    await bot.send_message(message.from_user.id, ex.help_message_english)
+                logging.info(f"Help command processed for user {message.from_user.id}")
 
     except Exception as exc:
         logging.error(f"Error handling help command: {exc}")
@@ -153,19 +145,16 @@ async def to_query_language(call: types.callback_query):
     The function gets the language the user has selected and writes that information
     in the DB table under the name of the user. It also sends a welcome message.
     """
-
     user_id = call.message.chat.id
     chosen_language = "en" if call.data == "enId" else "ru"
 
     try:
-        connection = connection_pool.getconn()
-        cursor = connection.cursor()
-        update_query = "UPDATE users SET language = %s WHERE tg_id = %s"
-        cursor.execute(update_query, (chosen_language, user_id))
+        with connection_pool.getconn() as connection:
+            with connection.cursor() as cursor:
+                update_query = "UPDATE users SET language = %s WHERE tg_id = %s"
+                cursor.execute(update_query, (chosen_language, user_id))
 
-        connection.commit()
-        cursor.close()
-        connection_pool.putconn(connection)
+                connection.commit()
 
         if chosen_language == "ru":
             await bot.send_message(user_id, text=ex.welcome_message_russian,
@@ -196,10 +185,10 @@ async def get_weather_and_send_messages(message: types.Message):
     will inform the user about it.
     """
 
-    conn = connection_pool.getconn()
-    cursor = conn.cursor()
-    cursor.execute("SELECT language FROM users WHERE tg_id = %s", (message.from_user.id,))
-    user_language = cursor.fetchone()
+    with connection_pool.getconn() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT language FROM users WHERE tg_id = %s", (message.from_user.id,))
+            user_language = cursor.fetchone()
 
     if user_language:
         user_language = user_language[0]
@@ -324,8 +313,10 @@ async def get_weather_and_send_messages(message: types.Message):
             current_not_found = ex.not_found_expression_english
             current_error_message = ex.error_message_english
 
-        cursor.execute(sql.SQL("SELECT city, country FROM cities WHERE city ILIKE %s"), [f"%{message.text}%"])
-        rows = cursor.fetchall()
+        with connection_pool.getconn() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(sql.SQL("SELECT city, country FROM cities WHERE city ILIKE %s"), [f"%{message.text}%"])
+                rows = cursor.fetchall()
 
         if loading_message:
             await bot.delete_message(message.from_user.id, loading_message.message_id)
@@ -341,8 +332,6 @@ async def get_weather_and_send_messages(message: types.Message):
         logging.error(f"Error processing message: {exc}")
 
     finally:
-        cursor.close()
-        conn.commit()
         connection_pool.putconn(conn)
 
 
