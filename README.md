@@ -15,7 +15,7 @@
 
 ## Introduction
 
-WeatherAnywhere is a Telegram chatbot that provides its users with current weather information and useful advice based
+WeatherAnywhere is a Telegram bot that provides its users with current weather information and useful advice based
 on their location input. The users can also send their location. It also stores user data in a PostgreSQL database and
 offers hints for valid locations if users make mistakes while inputting locations.
 
@@ -62,6 +62,8 @@ Create the necessary venv variables:
     BOT_TOKEN=your_telegram_bot_token
     DB_NAME=your-database-name
     DB_PASSWORD=your-database-password
+    DB_PORT=your-database-port
+    DB_USERNAME=your-database-username
     OWM_API=your-openweathermap-api
     OPEN_CAGE_API_KEY=your-opencage-api-key
 
