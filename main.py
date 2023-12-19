@@ -31,6 +31,7 @@ connection_pool = psycopg2.pool.SimpleConnectionPool(
     dbname=environ["DB_NAME"],
     user=environ["DB_USERNAME"],
     password=environ["DB_PASSWORD"],
+    host=environ["DB_HOST"],
     port=environ["DB_PORT"],
 )
 

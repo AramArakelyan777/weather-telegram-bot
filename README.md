@@ -62,6 +62,7 @@ Create the necessary venv variables:
     BOT_TOKEN=your_telegram_bot_token
     DB_NAME=your-database-name
     DB_PASSWORD=your-database-password
+    DB_HOST=your-host-ip
     DB_PORT=your-database-port
     DB_USERNAME=your-database-username
     OWM_API=your-openweathermap-api
