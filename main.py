@@ -6,8 +6,10 @@ from os import environ
 import psycopg2.pool
 from psycopg2 import sql
 import pyowm.commons.exceptions
-from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram import Bot, Dispatcher, types
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.filters import Command
+from aiogram import F
 from pyowm import OWM
 from pyowm.utils.config import get_default_config
 from opencage.geocoder import OpenCageGeocode
@@ -15,8 +17,9 @@ from opencage.geocoder import InvalidInputError, RateLimitExceededError, Unknown
 
 import expressions as ex
 
-bot = Bot(environ["BOT_TOKEN"])
-dispatcher = Dispatcher(bot)
+bot = Bot(token=environ["BOT_TOKEN"])
+dispatcher = Dispatcher()
+
 geocoder = OpenCageGeocode(environ["OPEN_CAGE_API_KEY"])
 
 logging.basicConfig(filename="bot.log", level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -42,10 +45,8 @@ def get_keyboard(text):
     :return: keyboard object
     The function creates a ReplyKeyboardMarkup and a button, and adds the button to it.
     """
-
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     button = types.KeyboardButton(text=text, request_location=True)
-    keyboard.add(button)
+    keyboard = types.ReplyKeyboardMarkup(keyboard=[[button]], resize_keyboard=True)
     return keyboard
 
 
@@ -62,12 +63,12 @@ def insert_user_data(connection, first_name, last_name, current_language, telegr
     """
     try:
         with connection.cursor() as connection_cursor:
-            connection_cursor.execute("SELECT id FROM users WHERE tg_id = %s", (telegram_id,))
+            connection_cursor.execute("SELECT id FROM users WHERE telegram_id = %s", (telegram_id,))
             existing_user_id = connection_cursor.fetchone()
 
             if not existing_user_id:
                 connection_cursor.execute(
-                    "INSERT INTO users (fname, lname, language, tg_id) VALUES (%s, %s, %s, %s)",
+                    "INSERT INTO users (fname, lname, language, telegram_id) VALUES (%s, %s, %s, %s)",
                     (first_name, last_name, current_language, telegram_id,)
                 )
                 connection.commit()
@@ -75,10 +76,10 @@ def insert_user_data(connection, first_name, last_name, current_language, telegr
                 logging.info(f"User data inserted successfully for {telegram_id}")
 
     except Exception as exc:
-        logging.error(f"Error handling start command: {exc}")
+        logging.error(f"Error inserting user data: {exc}")
 
 
-@dispatcher.message_handler(commands=["start"])
+@dispatcher.message(Command("start"))
 async def start_handler(message: types.Message):
     """
     Create inline language keyboard buttons in the bot and send a message
@@ -87,13 +88,11 @@ async def start_handler(message: types.Message):
     The function creates inline keyboard buttons for choosing a
     language, inserts the user data and sends a start message.
     """
-
     try:
-        markup = InlineKeyboardMarkup()
-        english_button = InlineKeyboardButton(text="🇬🇧 English", callback_data="enId")
-        russian_button = InlineKeyboardButton(text="🇷🇺 Русский", callback_data="ruId")
-        markup.add(english_button)
-        markup.add(russian_button)
+        builder = InlineKeyboardBuilder()
+        builder.button(text="🇬🇧 English", callback_data="enId")
+        builder.button(text="🇷🇺 Русский", callback_data="ruId")
+        markup = builder.as_markup()
 
         first_name = message.from_user.first_name
         last_name = message.from_user.last_name
@@ -112,7 +111,7 @@ async def start_handler(message: types.Message):
         connection_pool.putconn(conn)
 
 
-@dispatcher.message_handler(commands=["help"])
+@dispatcher.message(Command("help"))
 async def help_the_user(message: types.Message):
     """
     Send help message.
@@ -123,7 +122,7 @@ async def help_the_user(message: types.Message):
     try:
         with connection_pool.getconn() as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT language FROM users WHERE tg_id = %s", (message.from_user.id,))
+                cursor.execute("SELECT language FROM users WHERE telegram_id = %s", (message.from_user.id,))
                 user_language = cursor.fetchone()
 
                 if user_language[0] == "ru":
@@ -136,8 +135,8 @@ async def help_the_user(message: types.Message):
         logging.error(f"Error handling help command: {exc}")
 
 
-@dispatcher.callback_query_handler(lambda c: c.data in ["enId", "ruId"])
-async def to_query_language(call: types.callback_query):
+@dispatcher.callback_query(lambda c: c.data in ["enId", "ruId"])
+async def to_query_language(call: types.CallbackQuery):
     """
     Process the inline keyboard buttons query and update the DB table.
     :param call: callback call
@@ -151,7 +150,7 @@ async def to_query_language(call: types.callback_query):
     try:
         with connection_pool.getconn() as connection:
             with connection.cursor() as cursor:
-                update_query = "UPDATE users SET language = %s WHERE tg_id = %s"
+                update_query = "UPDATE users SET language = %s WHERE telegram_id = %s"
                 cursor.execute(update_query, (chosen_language, user_id))
 
                 connection.commit()
@@ -167,10 +166,10 @@ async def to_query_language(call: types.callback_query):
         logging.error(f"Error processing callback query: {exc}")
 
     finally:
-        await bot.answer_callback_query(call.id)
+        await call.answer()
 
 
-@dispatcher.message_handler(content_types=["location", "text"])
+@dispatcher.message(F.content_type.in_({"location", "text"}))
 async def get_weather_and_send_messages(message: types.Message):
     """
     Get the weather information, send some appropriate messages.
@@ -187,7 +186,7 @@ async def get_weather_and_send_messages(message: types.Message):
 
     with connection_pool.getconn() as conn:
         with conn.cursor() as cursor:
-            cursor.execute("SELECT language FROM users WHERE tg_id = %s", (message.from_user.id,))
+            cursor.execute("SELECT language FROM users WHERE telegram_id = %s", (message.from_user.id,))
             user_language = cursor.fetchone()
 
     if user_language:
@@ -335,4 +334,14 @@ async def get_weather_and_send_messages(message: types.Message):
         connection_pool.putconn(conn)
 
 
-executor.start_polling(dispatcher)
+async def main():
+    try:
+        await dispatcher.start_polling(bot)
+    except asyncio.exceptions.CancelledError:
+        logging.info("Bot polling has been cancelled.")
+    finally:
+        logging.info("Cleaning up...")
+        await bot.session.close()
+
+
+asyncio.run(main())
