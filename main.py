@@ -213,7 +213,7 @@ async def get_weather_and_send_messages(message: types.Message):
             current_loading_text = ex.loading_text_english
 
         loading_message = await bot.send_message(message.from_user.id, text=current_loading_text)
-        await asyncio.sleep(1.5)
+        await asyncio.sleep(1.2)
 
         location = ""
         if message.content_type == types.ContentType.LOCATION:
