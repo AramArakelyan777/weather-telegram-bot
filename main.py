@@ -31,11 +31,7 @@ logging.getLogger().addHandler(console_handler)
 connection_pool = psycopg2.pool.SimpleConnectionPool(
     minconn=1,
     maxconn=100,
-    dbname=environ["DB_NAME"],
-    user=environ["DB_USERNAME"],
-    password=environ["DB_PASSWORD"],
-    host=environ["DB_HOST"],
-    port=environ["DB_PORT"],
+    dsn=environ["DB_URL"]
 )
 
 
