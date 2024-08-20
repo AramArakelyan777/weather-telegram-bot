@@ -57,12 +57,34 @@ Before you begin, ensure you have the following:
 
 ### Configuration
 
-Create the necessary venv variables:
+1. Create the necessary venv variables:
 
+    ```bash
     BOT_TOKEN=your_telegram_bot_token
     DB_URL=your-postgres-db-url
     OWM_API=your-openweathermap-api
     OPEN_CAGE_API_KEY=your-opencage-api-key
+
+2. Configure the PostgreSQL database:
+
+This section describes the schema for the cities and users tables used in this project.
+
+Table 'cities'. This table stores the names of many cities in the world and their countries names. Fields:
+
+```bash
+city: character varying
+country: character varying
+```
+
+Table 'users'. This table stores the user's data after they start the bot. Fields:
+
+```bash
+id: bigserial, primary key
+fname: character varying, not null
+lname: character varying
+language: character varying
+telegram_id: bigint, not null
+```
 
 ## Usage
 
